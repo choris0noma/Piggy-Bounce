@@ -10,6 +10,7 @@ namespace PiggyBounce
     {
         private const int PLATFORM_LAYER = 6;
         private const int DEATH_LAYER = 9;
+        private const int FRUIT_LAYER = 11;
 
         [SerializeField] private Transform _feet;
         [Header("Touch Drag settings")]
@@ -30,9 +31,12 @@ namespace PiggyBounce
         private float _averageVelocity;
         private bool isOnGround = true;
 
-        public delegate void PlatformLandHandler(Vector2 landPosition);
-        public static event PlatformLandHandler OnLand;
-
+        public static Action<Vector2> OnLand;
+        public static Action OnRelease;
+        public static Action<int> OnScore;
+        public static Action OnCoinTrigger;
+        public delegate void PlatformEventHandler(Vector2 landPosition);
+      
 
         private void Awake()
         {
@@ -66,13 +70,18 @@ namespace PiggyBounce
             int layer = collision.gameObject.layer;
 
             if (layer == DEATH_LAYER) Die();
-
+            if (layer == FRUIT_LAYER)
+            {
+                Destroy(collision.gameObject);
+                OnCoinTrigger?.Invoke();
+            }
             if (layer == PLATFORM_LAYER)
             {
-                
+                collision.transform.parent.parent.GetComponent<Platform>().DeactivatePlatform();
                 _rigidBody.velocity = Vector2.zero;
                 isOnGround = true;
                 OnLand?.Invoke(transform.position);
+                OnScore?.Invoke(1);
             }
         }
         private void Die()
@@ -90,6 +99,7 @@ namespace PiggyBounce
             Vector2 forceDirection = Vector3.ClampMagnitude(direction, _maxDrag) * _power;
             isOnGround = false;
             _rigidBody.AddForce(forceDirection, ForceMode2D.Impulse);
+            OnRelease?.Invoke();
             _lineRenderer.positionCount = 0;
             
         }

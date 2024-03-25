@@ -7,10 +7,7 @@ namespace PiggyBounce
         [SerializeField] private Transform _platform, _start, _end;
         [SerializeField] private float _speed;
         private int _direction = 1;
-        public void DeactivatePlatform()
-        {
-            this.enabled = false;
-        }
+        
         private void Update()
         {
             Vector2 target = GetTarget();

@@ -6,7 +6,10 @@ namespace PiggyBounce
     {
         [SerializeField] protected int _weight;
         [SerializeField] protected float _yOffset, _yMaxDistance;
-        
+        public void DeactivatePlatform()
+        {
+            this.enabled = false;
+        }
         public void SelfDestruct()
         {
             Destroy(this.gameObject);

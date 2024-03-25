@@ -18,11 +18,13 @@ namespace PiggyBounce
         private void OnEnable()
         {
             Player.OnLand += InstantiatePlatform;
+            Player.OnRelease += DestroyPlatform;
         }
 
         private void OnDisable()
         {
             Player.OnLand -= InstantiatePlatform;
+            Player.OnRelease -= DestroyPlatform;
         }
 
         private void Awake()
@@ -39,18 +41,25 @@ namespace PiggyBounce
                 }
             }
         }
+        private void Start()
+        {
+            InstantiatePlatform(new Vector2(0, -3.606073f));
+        }
 
         private void InstantiatePlatform(Vector2 playerPos)
         {
-            Platform p = _platforms[GetNextIndex()];
+            var p = _platforms[GetNextIndex()];
             Vector2 spawnPos = GetSpawnPosition(playerPos, p);
 
-            if (currentPlatform!= null) Destroy(currentPlatform);
-            currentPlatform = nextPlatform;
             nextPlatform = Instantiate(_platforms[GetNextIndex()].gameObject, spawnPos, Quaternion.identity);
-            
-            
         }
+
+        private void DestroyPlatform()
+        {
+            if (currentPlatform != null) Destroy(currentPlatform);
+            currentPlatform = nextPlatform;
+        }
+
         public Vector2 GetSpawnPosition(Vector2 playerPosition, Platform p)
         {
             float offset = p.YOffset;

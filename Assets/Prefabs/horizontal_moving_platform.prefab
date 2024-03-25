@@ -109,9 +109,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 90ac09299a1e999419e84c7a6174c88c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _weight: 3
+  _weight: 6
   _yOffset: 2
-  _yMaxDistance: 1
+  _yMaxDistance: 2
   _platform: {fileID: 4857849554670874808}
   _start: {fileID: 3483917157297466426}
   _end: {fileID: 9148997779930786641}
