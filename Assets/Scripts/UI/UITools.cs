@@ -1,9 +1,8 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-namespace JumperCube.Util
+namespace CubeHopper.UI
 {
     public static class UItools
     {

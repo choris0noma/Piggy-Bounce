@@ -1,8 +1,6 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-namespace JumperCube
+namespace CubeHopper.UI
 {
     public class Link : MonoBehaviour
     {

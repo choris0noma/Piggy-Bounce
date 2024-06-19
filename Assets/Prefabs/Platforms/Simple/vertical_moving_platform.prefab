@@ -110,9 +110,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _weightData: {fileID: 11400000, guid: 45215c24701b4564cbe40e4a55da6412, type: 2}
-  _currentWeight: 0
   _yOffset: 2.5
-  _yMaxDistance: 2
+  _yMaxOffset: 1.5
   _platform: {fileID: 6176526680195255518}
   _start: {fileID: 3483917157297466426}
   _end: {fileID: 9148997779930786641}

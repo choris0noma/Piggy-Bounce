@@ -1,17 +1,18 @@
-using System.Collections;
-using System.Collections.Generic;
+using CubeHopper.Audio;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace JumperCube
+namespace CubeHopper.UI
 {
     public class Settings : MonoBehaviour
     {
         [SerializeField] private GameObject _settingsPanel;
         [SerializeField] private Toggle _vibro, _sound, _music;
+        public static bool isPaused { get; private set; }
 
         private void Start()
         {
+            _settingsPanel.transform.localScale = Vector3.zero;
             LoadData();
         }
 
@@ -44,13 +45,17 @@ namespace JumperCube
         }
         public void Open()
         {
-            _settingsPanel.SetActive(true);
+            isPaused = true;
             Time.timeScale = 0f;
+            _settingsPanel.SetActive(true);
+            _settingsPanel.transform.LeanScale(Vector3.one, 0.3f).setEaseInQuad().setIgnoreTimeScale(true);
         }
         public void Close() 
         {
-            _settingsPanel.SetActive(false);
+            isPaused = false;
             Time.timeScale = 1f;
+            _settingsPanel.transform.LeanScale(Vector3.zero, 0.2f).setIgnoreTimeScale(true).setEaseInQuad().setOnComplete(()=> 
+            _settingsPanel.SetActive(false));
         }
     }
 }

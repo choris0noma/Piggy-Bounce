@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weightData: {fileID: 11400000, guid: 61ff4744f4028334bad8375b9b5234f0, type: 2}
   _yOffset: 2
-  _yMaxDistance: 2
+  _yMaxOffset: 1
 --- !u!1001 &1882762113830419574
 PrefabInstance:
   m_ObjectHideFlags: 0

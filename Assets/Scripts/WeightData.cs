@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace JumperCube
+namespace CubeHopper
 {
     [CreateAssetMenu(fileName = "WeightData", menuName = "ScriptableObjects/WeightData")]
     public class WeightData : ScriptableObject

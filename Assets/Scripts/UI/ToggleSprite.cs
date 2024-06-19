@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Events;
 
-namespace JumperCube.UI
+namespace CubeHopper.UI
 {
     public class ToggleSprite : MonoBehaviour
     {
