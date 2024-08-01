@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace CubeHopper.Camera
+namespace CubeHopper.CameraModule
 {
     public class CameraScaler : MonoBehaviour
     {

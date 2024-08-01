@@ -1,6 +1,7 @@
 using CubeHopper.Platform;
 using CubeHopper.SavingData;
 using System;
+using System.Security.Cryptography;
 using TMPro;
 using UnityEngine;
 
@@ -20,15 +21,29 @@ namespace CubeHopper.Game
 
         private IDataService _dataService = new JsonDataService();   
         private PlayerStats stats;
+        private bool isEncrypted = true;
         public int Money => stats.Money;
        
-        public void UpdateMoneyInfo(int cost)
+        
+
+        public void GiveReward(int amount)
         {
+            stats.Money += amount;
+            _moneyText.text = stats.Money.ToString();
+            if (!_dataService.SaveData(FILE_PATH, stats, isEncrypted))
+            {
+                Debug.LogError("could not save money");
+            };
+        }
+
+        public void ExecutePurchase(int cost)
+        {
+            print(stats.Money);
             stats.Money -= cost;
             _moneyText.text = stats.Money.ToString();
-            if (!_dataService.SaveData(FILE_PATH, stats, true))
+            if (!_dataService.SaveData(FILE_PATH, stats, isEncrypted))
             {
-                Debug.LogError("B00ba");
+                Debug.LogError("could not save money");
             }
         }
 
@@ -36,14 +51,19 @@ namespace CubeHopper.Game
         {
             Player.OnScore += AddScore;
             Player.OnCoinTrigger += AddCoin;
+            DailyReward.OnRewardClaimed += GiveReward;
+            Rewarded.OnRewardGiven += GiveReward;
         }
         private void OnDisable()
         {
             Player.OnScore -= AddScore;
             Player.OnCoinTrigger -= AddCoin;
+            DailyReward.OnRewardClaimed -= GiveReward;
+            Rewarded.OnRewardGiven -= GiveReward;
         }
         private void Awake()
         {
+            Application.targetFrameRate = 60;
             LoadPlayerData();
             maxScore = stats.Score;
             _moneyText.text = stats.Money.ToString();
@@ -87,7 +107,7 @@ namespace CubeHopper.Game
         {
             PlayerStats dataToSave = stats.Score < maxScore ? new PlayerStats(maxScore, stats.Money): stats;
             
-            if (!_dataService.SaveData(FILE_PATH, dataToSave, true))
+            if (!_dataService.SaveData(FILE_PATH, dataToSave, isEncrypted))
             {
                 Debug.LogError("EEEee");
             }
@@ -97,7 +117,7 @@ namespace CubeHopper.Game
         {
             if (_dataService.CheckPathExistence(FILE_PATH))
             {
-                stats = _dataService.LoadData<PlayerStats>(FILE_PATH, true);
+                stats = _dataService.LoadData<PlayerStats>(FILE_PATH, isEncrypted);
             }
             else 
             {

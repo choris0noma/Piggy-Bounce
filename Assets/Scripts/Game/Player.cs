@@ -1,11 +1,13 @@
 using System;
 using UnityEngine.SceneManagement;
 using UnityEngine;
-using CubeHopper.Camera;
+using CubeHopper.CameraModule;
 using System.Collections.Generic;
 using CubeHopper.UI;
 using CubeHopper.Audio;
 using CubeHopper.Platform;
+using System.Runtime.CompilerServices;
+using UnityEngine.Rendering;
 
 namespace CubeHopper.Game
 {
@@ -34,18 +36,28 @@ namespace CubeHopper.Game
         [SerializeField] private Sprite _flying;
         [SerializeField] private Sprite _idle;
         [Space]
-        [SerializeField] private ParticleSystem _particleSystem;
+        [SerializeField] private ParticleSystem _deathParticles;
+        [SerializeField] private ParticleSystem _coinParticles;
         [Space]
         [SerializeField] private CameraFollow _cameraFollow;
         [Space]
-        [SerializeField] private AudioClip _coinPickUp;
+        [Header("Sound")]
+        [SerializeField] private AudioClip _coinSound;
+        [SerializeField] private AudioClip _launchSound;
+        [SerializeField] private AudioClip _losingSound;
+        [SerializeField] private AudioClip _landingSound;
         [Space]
+        [Header("Colors")]
+        [SerializeField] private Gradient _coinPickUpColor;
+        [SerializeField] private Gradient _deathColor;
+        [Space]
+        [SerializeField] private TrailRenderer _trailRenderer;
         [SerializeField] private GameObject _dot;
         [SerializeField] private List<GameObject> _dots = new List<GameObject>();
 
 
         private Rigidbody2D _rigidBody;
-        private UnityEngine.Camera _cam;
+        private Camera _cam;
 
         private Vector2 _startPos;
 
@@ -58,8 +70,24 @@ namespace CubeHopper.Game
         public static Action<int> OnScore;
         public static Action OnCoinTrigger;
 
-        
+        private float _previous_height = 0;
+        private float _diff = 0;
+        private int _particleCount = 50;
 
+        public static Action OnDeath;
+        private void OnEnable()
+        {
+            CameraFollow.OnCameraStop += AdjustStarPos;
+        }
+        private void OnDisable()
+        {
+            CameraFollow.OnCameraStop -= AdjustStarPos;
+        }
+        private void AdjustStarPos()
+        {
+            _diff = transform.position.y - _previous_height;
+            _startPos.y += _diff;
+        }
         private void Awake()
         {
             _rigidBody = GetComponent<Rigidbody2D>();
@@ -67,7 +95,7 @@ namespace CubeHopper.Game
             _steps = (int)Mathf.Round(_duration / _timeStep);
             _gravitationalVelocity = Physics2D.gravity.y * _rigidBody.gravityScale / 2;
 
-            _cam = UnityEngine.Camera.main;
+            _cam = Camera.main;
 
             for (int i = 0; i < _steps; i++)
             {
@@ -75,24 +103,11 @@ namespace CubeHopper.Game
                 _dots[i].SetActive(false);
             }
         }
-        private void Start()
-        {
-            if (UItools.IsOnUI()) return;
-
-            if (!isOnGround) return;
-
-            if (Input.GetMouseButtonDown(0))
-                DragStart();
-            if (Input.GetMouseButton(0))
-                PlotTrajectory();
-
-            if (Input.GetMouseButtonUp(0))
-                DragRelease();
-            
-        }
+        
         private void Update()
         {
-            if (UItools.IsOnUI() || Settings.isPaused) return;
+            
+            if (UItools.IsOnUI() || Settings.isPaused ) return;
 
             if (!isOnGround && Input.GetMouseButtonDown(0))
             {
@@ -109,9 +124,14 @@ namespace CubeHopper.Game
 
         }
 
-        
-       
-        
+        private bool AngleCheck(Vector2 launchDirection)
+        {
+            float angle = -Mathf.Atan2(launchDirection.y, launchDirection.x) * Mathf.Rad2Deg;
+            if (angle >= 0 && angle <= 180) return true;
+            else return false;
+        }
+
+
         private void OnTriggerEnter2D(Collider2D collision)
         {
             int layer = collision.gameObject.layer;
@@ -120,12 +140,15 @@ namespace CubeHopper.Game
             if (layer == COIN_LAYER)
             {
                 Destroy(collision.gameObject);
-                AudioManager.Instance.PlayAudio(_coinPickUp);
-                _particleSystem.Emit(100);
+                AudioManager.Instance.PlayAudio(_coinSound);
+                Handheld.Vibrate();
+                Instantiate(_coinParticles , transform.position, Quaternion.identity);
                 OnCoinTrigger?.Invoke();
             }
             if (layer == PLATFORM_LAYER)
             {
+                AudioManager.Instance.PlayAudio(_landingSound);
+                Handheld.Vibrate();
                 _rigidBody.velocity = Vector2.zero;
                 collision.transform.parent.parent.GetComponent<SimplePlatform>().DeactivatePlatform();
                 isOnGround = true;
@@ -134,10 +157,28 @@ namespace CubeHopper.Game
                 OnScore?.Invoke(1);
             }
         }
+        bool isResurrected = false;
         
+        public void Resurrect()
+        {
+            isResurrected = true;
+            gameObject.SetActive(true);
+        }
         private void Die()
         {
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            AudioManager.Instance.PlayAudio(_losingSound);
+            Instantiate(_deathParticles, transform.position, Quaternion.identity);
+            _spriteRenderer.sprite = _idle;
+            isOnGround = true;
+            gameObject.SetActive(false);
+            if (isResurrected)
+            {
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            }
+            else
+            {
+                OnDeath?.Invoke();
+            }
         }
         private void DragStart()
         {
@@ -146,6 +187,7 @@ namespace CubeHopper.Game
      
         private void DragRelease()
         {
+            _previous_height = transform.position.y;
             Vector2 releasePos = _cam.ScreenToWorldPoint(Input.mousePosition);
             Vector2 direction = _startPos - releasePos;
             if (IsDragCancelled(releasePos) || AngleCheck(direction))
@@ -156,17 +198,10 @@ namespace CubeHopper.Game
             Vector2 forceDirection = Vector3.ClampMagnitude(direction, _maxDrag)* _power;
             _spriteRenderer.sprite = _flying;
             _rigidBody.AddForce(forceDirection, ForceMode2D.Impulse);
+            AudioManager.Instance.PlayAudio(_launchSound);
             OnRelease?.Invoke();
             isOnGround = false;
             foreach (GameObject dot in _dots) { dot.SetActive(false); }
-        }
-
-        private bool AngleCheck(Vector2 launchDirection)
-        {
-            float angle = -Mathf.Atan2(launchDirection.y, launchDirection.x) * Mathf.Rad2Deg;
-            if (angle >= 0 && angle <= 180) return true;
-            else return false;
-            //quick way around 
         }
 
         private void PlotTrajectory()
@@ -197,7 +232,7 @@ namespace CubeHopper.Game
                 if (ray)
                 {
                     launchPos = ray.point + ray.normal*0.01f;
-                    forceDirection = Vector2.Reflect(forceDirection, ray.normal) * BOUNCE_REDUCTION;
+                    forceDirection = Vector2.Reflect(forceDirection, ray.normal).normalized  * BOUNCE_REDUCTION;
                     prevPos = launchPos;
                     time = _timeStep;
                     newPos = launchPos + forceDirection*time;
@@ -225,11 +260,12 @@ namespace CubeHopper.Game
             return Vector2.Distance(mousePos, _startPos) < _maxDrag / 3;
         }
 
-        public void SetSkin(Sprite idleSprite, Sprite flySprite)
+        public void SetSkin(Sprite idleSprite, Sprite flySprite, Gradient traceColor)
         {
             _idle = idleSprite;
             _flying = flySprite;
             _spriteRenderer.sprite = _idle;
+            _trailRenderer.colorGradient = traceColor;
         }
     }
 }

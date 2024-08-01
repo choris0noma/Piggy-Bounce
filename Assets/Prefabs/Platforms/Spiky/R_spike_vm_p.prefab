@@ -111,7 +111,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _weightData: {fileID: 11400000, guid: ba60dba6d2ef3e049a24a24a58d259a6, type: 2}
   _yOffset: 2.5
-  _yMaxDistance: 2
+  _yMaxOffset: 0
+  _collider: {fileID: 7289390946771010205}
   _platform: {fileID: 6176526680195255518}
   _start: {fileID: 3483917157297466426}
   _end: {fileID: 9148997779930786641}
@@ -141,11 +142,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 9040295430372079042, guid: 9a3e006e382f2b14881d12d2fb443763, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.66666675
+      value: 0.586
       objectReference: {fileID: 0}
     - target: {fileID: 9040295430372079042, guid: 9a3e006e382f2b14881d12d2fb443763, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.32
+      value: 0.257
       objectReference: {fileID: 0}
     - target: {fileID: 9040295430372079042, guid: 9a3e006e382f2b14881d12d2fb443763, type: 3}
       propertyPath: m_LocalPosition.z
@@ -178,6 +179,10 @@ PrefabInstance:
     - target: {fileID: 9040295430372079042, guid: 9a3e006e382f2b14881d12d2fb443763, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 9040295430372079045, guid: 9a3e006e382f2b14881d12d2fb443763, type: 3}
+      propertyPath: m_SortingOrder
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 9040295430372079047, guid: 9a3e006e382f2b14881d12d2fb443763, type: 3}
       propertyPath: m_Name
@@ -245,5 +250,10 @@ PrefabInstance:
 --- !u!4 &6176526680195255518 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2040099904555516502, guid: 81fb1e37c916e9f4f8b68e0a6dd4ff03, type: 3}
+  m_PrefabInstance: {fileID: 5330162199150579336}
+  m_PrefabAsset: {fileID: 0}
+--- !u!61 &7289390946771010205 stripped
+BoxCollider2D:
+  m_CorrespondingSourceObject: {fileID: 3229525369072241685, guid: 81fb1e37c916e9f4f8b68e0a6dd4ff03, type: 3}
   m_PrefabInstance: {fileID: 5330162199150579336}
   m_PrefabAsset: {fileID: 0}

@@ -110,9 +110,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _weightData: {fileID: 11400000, guid: 45215c24701b4564cbe40e4a55da6412, type: 2}
-  _currentWeight: 0
   _yOffset: 2
-  _yMaxDistance: 2
+  _yMaxOffset: 0
+  _collider: {fileID: 8355580651009523451}
   _platform: {fileID: 4857849554670874808}
   _start: {fileID: 3483917157297466426}
   _end: {fileID: 9148997779930786641}
@@ -177,6 +177,11 @@ PrefabInstance:
 --- !u!4 &4857849554670874808 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2040099904555516502, guid: 81fb1e37c916e9f4f8b68e0a6dd4ff03, type: 3}
+  m_PrefabInstance: {fileID: 6856000784084333294}
+  m_PrefabAsset: {fileID: 0}
+--- !u!61 &8355580651009523451 stripped
+BoxCollider2D:
+  m_CorrespondingSourceObject: {fileID: 3229525369072241685, guid: 81fb1e37c916e9f4f8b68e0a6dd4ff03, type: 3}
   m_PrefabInstance: {fileID: 6856000784084333294}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8420858977528952392

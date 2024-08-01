@@ -48,6 +48,7 @@ MonoBehaviour:
   _weightData: {fileID: 11400000, guid: 61ff4744f4028334bad8375b9b5234f0, type: 2}
   _yOffset: 2
   _yMaxOffset: 1
+  _collider: {fileID: 3959084209108496483}
 --- !u!1001 &1882762113830419574
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -116,5 +117,10 @@ PrefabInstance:
 --- !u!4 &463604848017538592 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2040099904555516502, guid: 81fb1e37c916e9f4f8b68e0a6dd4ff03, type: 3}
+  m_PrefabInstance: {fileID: 1882762113830419574}
+  m_PrefabAsset: {fileID: 0}
+--- !u!61 &3959084209108496483 stripped
+BoxCollider2D:
+  m_CorrespondingSourceObject: {fileID: 3229525369072241685, guid: 81fb1e37c916e9f4f8b68e0a6dd4ff03, type: 3}
   m_PrefabInstance: {fileID: 1882762113830419574}
   m_PrefabAsset: {fileID: 0}

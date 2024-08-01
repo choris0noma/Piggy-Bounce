@@ -6,10 +6,12 @@ namespace CubeHopper.UI
 {
     public class Settings : MonoBehaviour
     {
+        [SerializeField] private AudioClip _ClickSound;
         [SerializeField] private GameObject _settingsPanel;
         [SerializeField] private Toggle _vibro, _sound, _music;
         public static bool isPaused { get; private set; }
 
+       
         private void Start()
         {
             _settingsPanel.transform.localScale = Vector3.zero;
@@ -48,13 +50,15 @@ namespace CubeHopper.UI
             isPaused = true;
             Time.timeScale = 0f;
             _settingsPanel.SetActive(true);
-            _settingsPanel.transform.LeanScale(Vector3.one, 0.3f).setEaseInQuad().setIgnoreTimeScale(true);
+            AudioManager.Instance.PlayAudio(_ClickSound);
+            _settingsPanel.transform.LeanScale(Vector3.one, 0.3f).setEaseOutQuad().setIgnoreTimeScale(true);
         }
         public void Close() 
         {
             isPaused = false;
             Time.timeScale = 1f;
-            _settingsPanel.transform.LeanScale(Vector3.zero, 0.2f).setIgnoreTimeScale(true).setEaseInQuad().setOnComplete(()=> 
+            AudioManager.Instance.PlayAudio(_ClickSound);
+            _settingsPanel.transform.LeanScale(Vector3.zero, 0.2f).setIgnoreTimeScale(true).setEaseOutQuad().setOnComplete(()=> 
             _settingsPanel.SetActive(false));
         }
     }

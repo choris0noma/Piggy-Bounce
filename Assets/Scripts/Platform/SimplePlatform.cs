@@ -1,6 +1,6 @@
 using UnityEngine;
 using CubeHopper.GameFlow;
-
+using System;
 
 namespace CubeHopper.Platform
 {
@@ -8,12 +8,14 @@ namespace CubeHopper.Platform
     {
         [SerializeField] protected WeightData _weightData;
         [SerializeField] protected float _yOffset, _yMaxOffset;
-       
+        [SerializeField] protected Collider2D _collider;
 
         public void DeactivatePlatform()
         {
             this.enabled = false;
+            _collider.enabled = false;
         }
+
 
         public int Weight
         {

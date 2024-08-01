@@ -8,5 +8,6 @@ namespace CubeHopper.UI
         [field: SerializeField] public int Price { get; private set; }
         [field: SerializeField] public Sprite IdleSprite { get; private set; }
         [field: SerializeField] public Sprite FlySprite { get; private set; }
+        [field: SerializeField] public Gradient TraceColor{ get; private set; }
     }
 }

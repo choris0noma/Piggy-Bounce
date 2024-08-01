@@ -1,7 +1,7 @@
 using CubeHopper.Game;
 using UnityEngine;
 
-namespace CubeHopper.Camera
+namespace CubeHopper.CameraModule
 {
     public class Follow : MonoBehaviour
     {

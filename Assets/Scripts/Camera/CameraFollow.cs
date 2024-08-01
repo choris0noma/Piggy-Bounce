@@ -1,11 +1,13 @@
 using CubeHopper.Game;
+using System;
 using UnityEngine;
 
-namespace CubeHopper.Camera
+namespace CubeHopper.CameraModule
 {
     public class CameraFollow : MonoBehaviour
     {
         [SerializeField] private AnimationCurve _curve;
+        public static Action OnCameraStop;
         private float OFFSET;
         private void OnEnable()
         {
@@ -17,12 +19,13 @@ namespace CubeHopper.Camera
         }
         private void Awake()
         {
-            OFFSET = UnityEngine.Camera.main.orthographicSize * 2 / 3;
+            OFFSET = Camera.main.orthographicSize * 1.5f / 3;
         }
         private void LerpToPlayer(Vector2 landPos)
         {
-            transform.LeanMove(new Vector2(0, landPos.y + OFFSET), 1f).setEaseOutQuint();
-            //StartCoroutine(FollowPlayer(landPos));
+            transform.LeanMove(new Vector2(0, landPos.y + OFFSET), 1f).setEaseOutQuint().setOnComplete(
+                () => OnCameraStop?.Invoke()
+                );
         }
         
         //want to impose my beatles taste to everyone

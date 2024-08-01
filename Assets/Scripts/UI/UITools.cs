@@ -13,12 +13,11 @@ namespace CubeHopper.UI
             pointerED.position = Input.mousePosition;
             List<RaycastResult> results = new List<RaycastResult>();
             EventSystem.current.RaycastAll(pointerED, results);
-            for (int i = 0; i < results.Count; i++)
+            for (int i = results.Count - 1; i >= 0; i--)
             {
                 if (results[i].gameObject.layer != UI_LAYER)
                 {
                     results.RemoveAt(i);
-                    i--;
                 }
             }
             return results.Count > 0;
