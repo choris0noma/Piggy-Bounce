@@ -232,7 +232,7 @@ namespace CubeHopper.Game
                 if (ray)
                 {
                     launchPos = ray.point + ray.normal*0.01f;
-                    forceDirection = Vector2.Reflect(forceDirection, ray.normal).normalized  * BOUNCE_REDUCTION;
+                    forceDirection = Vector2.Reflect(forceDirection, ray.normal)  * BOUNCE_REDUCTION;
                     prevPos = launchPos;
                     time = _timeStep;
                     newPos = launchPos + forceDirection*time;

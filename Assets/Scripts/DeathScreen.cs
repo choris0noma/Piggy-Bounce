@@ -12,12 +12,12 @@ namespace CubeHopper
         private void OnEnable()
         {
             Player.OnDeath += Open;
-            Rewarded.OnSecondChanceGiven += Close;
+            Rewarded.OnRewardGiven += Close;
         }
         private void OnDisable()
         {
             Player.OnDeath -= Open;
-            Rewarded.OnSecondChanceGiven -= Close;
+            Rewarded.OnRewardGiven -= Close;
         }
         private void Open()
         {

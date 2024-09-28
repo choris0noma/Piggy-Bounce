@@ -3,9 +3,13 @@ using GoogleMobileAds.Api;
 using UnityEngine;
 using UnityEngine.Events;
 
-public class GoogleMobileAdsDemoScript : MonoBehaviour
+public class AdInitializer : MonoBehaviour
 {
     [SerializeField] private UnityEvent OnAdsInitialized;
+    private void Awake()
+    {
+        DontDestroyOnLoad(this);
+    }
     public void Start()
     {
         MobileAds.Initialize((InitializationStatus initStatus) =>

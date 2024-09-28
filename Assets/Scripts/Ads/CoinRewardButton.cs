@@ -1,31 +1,44 @@
 using CubeHopper.SavingData;
+using GoogleMobileAds.Ump.Api;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading;
 using TMPro;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace CubeHopper
 {
-    public class DailyReward : MonoBehaviour
+    public class CoinRewardButton : MonoBehaviour
     {
-        private const string PATH = "/time.json";
+        private const string PATH = "/adTime.json";
+        [SerializeField] private Image img;
         private const int INTERVAL_IN_SECONDS = 5;
+        [SerializeField] private Button btn;
+        [SerializeField] private TextMeshProUGUI _timer;
 
-        [SerializeField] private Button _claimButton;
-        [SerializeField] private TextMeshProUGUI _timerText;
         private IDataService _dataService = new JsonDataService();
-        public static Action<int> OnRewardClaimed;
         private DateTime _lastTimeRewardClaimed;
         private TimeSpan _timeLeft;
-
         private bool isEncrypted = true;
+
+        private void OnEnable()
+        {
+            Rewarded.OnMoneyRewardGiven += SaveTimeOfLastReward;
+        }
+        private void OnDisable()
+        {
+            Rewarded.OnMoneyRewardGiven -= SaveTimeOfLastReward;
+        }
         private void Awake()
         {
             RetrieveLastTime();
             if (EnoughTimeHasPassed())
             {
+                PlayerPrefs.SetInt("isGiven", 0);
+                PlayerPrefs.Save();
                 ActivateButton();
             }
             else
@@ -36,29 +49,26 @@ namespace CubeHopper
         }
         private void ActivateButton()
         {
-            _claimButton.image.color = new Color(1, 1, 1, 1);
-            _claimButton.interactable = true;
-            _timerText.text = "Free";
+            img.color = new Color(1, 1, 1, 1);
+            btn.interactable = true;
+            _timer.text = "";
         }
         private void DeactivateButton()
         {
-            _claimButton.image.color = new Color(1, 1, 1, 0.7f);
-            _claimButton.interactable = false;
+            img.color = new Color(1, 1, 1, 0.7f);
+            btn.interactable = false;
             DisplayTime();
             StartCoroutine(StartTimer());
         }
-        public void ClaimReward()
+        private bool EnoughTimeHasPassed()
         {
-            if (EnoughTimeHasPassed())
-            {
-                OnRewardClaimed?.Invoke(UnityEngine.Random.Range(20, 50));
-                _lastTimeRewardClaimed = DateTime.Now;
-                SaveTimeOfLastReward();
-                _timeLeft = TimeSpan.FromSeconds(INTERVAL_IN_SECONDS);
-                DeactivateButton();
-            }
+            return DateTime.Now.Subtract(_lastTimeRewardClaimed).TotalSeconds >= INTERVAL_IN_SECONDS;
         }
-
+       
+        private void DisplayTime()
+        {
+            _timer.text = _timeLeft.ToString(@"hh\:mm\:ss");
+        }
         private IEnumerator StartTimer()
         {
             while (_timeLeft.TotalSeconds > 0)
@@ -67,23 +77,23 @@ namespace CubeHopper
                 _timeLeft = _timeLeft.Subtract(TimeSpan.FromSeconds(1));
                 DisplayTime();
             }
+            PlayerPrefs.SetInt("isGiven", 0);
+            PlayerPrefs.Save();
             ActivateButton();
         }
-
-        private void DisplayTime()
+       
+    
+        private void SaveTimeOfLastReward(int m = 0)
         {
-            _timerText.text = _timeLeft.ToString(@"hh\:mm\:ss");
-        }
-        private bool EnoughTimeHasPassed()
-        {
-            return DateTime.Now.Subtract(_lastTimeRewardClaimed).TotalSeconds >= INTERVAL_IN_SECONDS;
-        }
-        private void SaveTimeOfLastReward()
-        {
+            PlayerPrefs.SetInt("isGiven", 1);
+            PlayerPrefs.Save();
+            _lastTimeRewardClaimed = DateTime.Now;
             if (!_dataService.SaveData(PATH, _lastTimeRewardClaimed, isEncrypted))
             {
                 Debug.LogError("Couldn't save time of last reward");
             }
+            _timeLeft = TimeSpan.FromSeconds(INTERVAL_IN_SECONDS);
+            DeactivateButton();
         }
         private void RetrieveLastTime()
         {

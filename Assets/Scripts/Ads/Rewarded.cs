@@ -19,8 +19,8 @@ namespace CubeHopper
         #endif
 
         private RewardedAd _rewardedAd;
-        public static Action OnSecondChanceGiven;
-        public static Action<int> OnRewardGiven;
+        public static Action OnRewardGiven;
+        public static Action<int> OnMoneyRewardGiven;
 
         private void LoadRewardedAd()
         {
@@ -55,15 +55,21 @@ namespace CubeHopper
             LoadRewardedAd();
             if (_rewardedAd != null && _rewardedAd.CanShowAd())
             {
-                _rewardedAd.Show((Reward reward) => { OnSecondChanceGiven?.Invoke(); });
+                _rewardedAd.Show((Reward reward) => { OnRewardGiven?.Invoke(); });
             }
         }
         public void GiveMoneyForAd()
         {
-            LoadRewardedAd();
-            if (_rewardedAd != null && _rewardedAd.CanShowAd())
+            int isGiven = PlayerPrefs.GetInt("isGiven", 0);
+            if (isGiven != 1)
             {
-                _rewardedAd.Show((Reward reward) => { OnRewardGiven?.Invoke(FIXED_AMOUNT_OF_COINS); });
+                LoadRewardedAd();
+                if (_rewardedAd != null && _rewardedAd.CanShowAd())
+                {
+                    _rewardedAd.Show((Reward reward) => {
+                        OnMoneyRewardGiven?.Invoke(FIXED_AMOUNT_OF_COINS);
+                    });
+                }
             }
         }
 

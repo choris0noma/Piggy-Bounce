@@ -14,6 +14,7 @@ namespace CubeHopper.Game
 
         [SerializeField] private TextMeshProUGUI _scoreText;
         [SerializeField] private TextMeshProUGUI _moneyText;
+        [SerializeField] private TextMeshProUGUI _addMoneyText;
         public static Action OnDifficultyChange;
         private int _threshold = 10;
         private int _level = 0;
@@ -23,13 +24,20 @@ namespace CubeHopper.Game
         private PlayerStats stats;
         private bool isEncrypted = true;
         public int Money => stats.Money;
-       
-        
+
+        private Vector3 _addMoneyStartPos;
 
         public void GiveReward(int amount)
         {
-            stats.Money += amount;
-            _moneyText.text = stats.Money.ToString();
+            _addMoneyText.gameObject.SetActive(true);
+            _addMoneyText.text = "+" + amount.ToString();
+
+            _addMoneyText.transform.LeanMoveLocalY(_moneyText.transform.localPosition.y, 1f).setIgnoreTimeScale(true).setEaseOutQuart().setOnComplete(() => {
+                _addMoneyText.gameObject.SetActive(false);
+                _addMoneyText.transform.localPosition = _addMoneyStartPos;
+                stats.Money += amount;
+                _moneyText.text = stats.Money.ToString();
+            });
             if (!_dataService.SaveData(FILE_PATH, stats, isEncrypted))
             {
                 Debug.LogError("could not save money");
@@ -52,18 +60,18 @@ namespace CubeHopper.Game
             Player.OnScore += AddScore;
             Player.OnCoinTrigger += AddCoin;
             DailyReward.OnRewardClaimed += GiveReward;
-            Rewarded.OnRewardGiven += GiveReward;
+            Rewarded.OnMoneyRewardGiven += GiveReward;
         }
         private void OnDisable()
         {
             Player.OnScore -= AddScore;
             Player.OnCoinTrigger -= AddCoin;
             DailyReward.OnRewardClaimed -= GiveReward;
-            Rewarded.OnRewardGiven -= GiveReward;
+            Rewarded.OnMoneyRewardGiven -= GiveReward;
         }
         private void Awake()
         {
-            Application.targetFrameRate = 60;
+            _addMoneyStartPos = _addMoneyText.transform.localPosition;
             LoadPlayerData();
             maxScore = stats.Score;
             _moneyText.text = stats.Money.ToString();

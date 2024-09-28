@@ -23,7 +23,7 @@ namespace CubeHopper.Game
             Player.OnLand += InstantiatePlatform;
             Player.OnRelease += DestroyPlatform;
             PlayerDataManager.OnDifficultyChange += UpdateWeights;
-            Rewarded.OnSecondChanceGiven += GiveSecondAttempt;
+            Rewarded.OnRewardGiven += GiveSecondAttempt;
         }
 
         private void OnDisable()
@@ -31,7 +31,7 @@ namespace CubeHopper.Game
             Player.OnLand -= InstantiatePlatform;
             Player.OnRelease -= DestroyPlatform;
             PlayerDataManager.OnDifficultyChange -= UpdateWeights;
-            Rewarded.OnSecondChanceGiven -= GiveSecondAttempt;
+            Rewarded.OnRewardGiven -= GiveSecondAttempt;
         }
 
         private void Awake()
