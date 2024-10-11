@@ -2,6 +2,7 @@ using CubeHopper.Audio;
 using CubeHopper.Game;
 using CubeHopper.SavingData;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 namespace CubeHopper.UI
@@ -21,6 +22,15 @@ namespace CubeHopper.UI
         private List<int> _purchasedItems = new List<int> { 0 };
         private Player _player;
         private bool isEncrypted = true;
+        private void OnEnable()
+        {
+            Rewarded.OnMoneyRewardGiven += CheckAvailableSkins;
+        }
+        private void OnDisable()
+        {
+            Rewarded.OnMoneyRewardGiven -= CheckAvailableSkins;
+        }
+
         private void Awake()
         {
             shopPanel.transform.localPosition = _startPosition;
@@ -56,6 +66,7 @@ namespace CubeHopper.UI
         }
         private void LoadSkins()
         {
+            skinList = skinList.OrderBy(skin => skin.Price).ToArray();
             for (int i = 0; i < skinList.Length; i++) 
             {
                 skinPanels[i].Price = skinList[i].Price;
@@ -69,7 +80,7 @@ namespace CubeHopper.UI
                 skinPanels[index].isPurchased = true;
             }
         }
-        public void CheckAvailableSkins()
+        public void CheckAvailableSkins(int m = 0)
         {
             for (int i = 0; i< skinList.Length; i++)
             {
@@ -107,6 +118,7 @@ namespace CubeHopper.UI
         public void Open()
         {
             shopPanel.SetActive(true);
+            CheckAvailableSkins();
             AudioManager.Instance.PlayAudio(_ClickSound);
             shopPanel.transform.LeanMoveLocal(_endPosition, 0.5f).setEaseOutQuad();
         }

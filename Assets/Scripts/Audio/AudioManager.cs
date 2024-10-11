@@ -24,19 +24,30 @@ namespace CubeHopper.Audio
             SetMuteStateAudio(PlayerPrefs.GetInt("Sound", 1) == 1);
             SetMuteStateMusic(PlayerPrefs.GetInt("Music", 1) == 1);
         }
+
         public void PlayAudio(AudioClip clip)
         {
-            _audio.PlayOneShot(clip);
-        }
-        public void SetMuteStateMusic(bool _state)
-        {
-            if (_state) _music.Play();
-            else _music.Stop();
-        }
-        public void SetMuteStateAudio(bool _state)
-        {
-            _audio.mute = !_state;
+            if (_audio.enabled)
+            {
+                _audio.PlayOneShot(clip);
+            }
         }
 
+        public void SetMuteStateMusic(bool _state)
+        {
+            if (_music.enabled)
+            {
+                if (_state) _music.Play();
+                else _music.Stop();
+            }
+        }
+
+        public void SetMuteStateAudio(bool _state)
+        {
+            if (_audio.enabled)
+            {
+                _audio.mute = !_state;
+            }
+        }
     }
 }

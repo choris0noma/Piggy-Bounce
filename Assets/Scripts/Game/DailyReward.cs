@@ -11,7 +11,7 @@ namespace CubeHopper
     public class DailyReward : MonoBehaviour
     {
         private const string PATH = "/time.json";
-        private const int INTERVAL_IN_SECONDS = 5;
+        private const int INTERVAL_IN_SECONDS = 3 * 60 * 60;
 
         [SerializeField] private Button _claimButton;
         [SerializeField] private TextMeshProUGUI _timerText;

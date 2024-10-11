@@ -2,27 +2,23 @@ using GoogleMobileAds.Api;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 namespace CubeHopper
 {
     public class Rewarded : MonoBehaviour
     {
-        private const int FIXED_AMOUNT_OF_COINS = 40;
 
-        #if UNITY_ANDROID
-                private string _adUnitId = "ca-app-pub-3940256099942544/5224354917";
-        #elif UNITY_IPHONE
-          private string _adUnitId = "ca-app-pub-3940256099942544/1712485313";
-        #else
-          private string _adUnitId = "unused";
-        #endif
+        private string _adUnitId = "ca-app-pub-3940256099942544/5224354917";
+        private string _noRewardAd;
 
+        [SerializeField] private CanvasGroup _prompt;
         private RewardedAd _rewardedAd;
         public static Action OnRewardGiven;
+        public static Action OnAdStarted;
         public static Action<int> OnMoneyRewardGiven;
-
-        private void LoadRewardedAd()
+        private void LoadRewardedAd(string _id)
         {
             // Clean up the old ad before loading a new one.
             if (_rewardedAd != null)
@@ -33,13 +29,16 @@ namespace CubeHopper
 
             var adRequest = new AdRequest();
 
-            RewardedAd.Load(_adUnitId, adRequest,
+            RewardedAd.Load(_id, adRequest,
                 (RewardedAd ad, LoadAdError error) =>
                 {
                     if (error != null || ad == null)
                     {
-                        Debug.LogError("Rewarded ad failed to load an ad " +
-                                       "with error : " + error);
+                        _prompt.gameObject.SetActive(true);
+                        LeanTween.value(_prompt.gameObject, (x) => { _prompt.alpha = x; }, 0, 1, 0.6f).setEaseOutQuad();
+                        LeanTween.value(_prompt.gameObject, (x) => { _prompt.alpha = x; }, 1, 0, 0.6f).setEaseOutQuad().setDelay(1.2f).setOnComplete(() => {
+                            _prompt.gameObject.SetActive(false);
+                        });
                         return;
                     }
 
@@ -52,24 +51,22 @@ namespace CubeHopper
 
         public void ShowRewardedAd()
         {
-            LoadRewardedAd();
+            LoadRewardedAd(_noRewardAd);
             if (_rewardedAd != null && _rewardedAd.CanShowAd())
             {
+                OnAdStarted?.Invoke();
                 _rewardedAd.Show((Reward reward) => { OnRewardGiven?.Invoke(); });
             }
         }
         public void GiveMoneyForAd()
         {
-            int isGiven = PlayerPrefs.GetInt("isGiven", 0);
-            if (isGiven != 1)
+           
+            LoadRewardedAd(_adUnitId);
+            if (_rewardedAd != null && _rewardedAd.CanShowAd())
             {
-                LoadRewardedAd();
-                if (_rewardedAd != null && _rewardedAd.CanShowAd())
-                {
-                    _rewardedAd.Show((Reward reward) => {
-                        OnMoneyRewardGiven?.Invoke(FIXED_AMOUNT_OF_COINS);
-                    });
-                }
+                _rewardedAd.Show((Reward reward) => {
+                    OnMoneyRewardGiven?.Invoke((int)reward.Amount);
+                });
             }
         }
 

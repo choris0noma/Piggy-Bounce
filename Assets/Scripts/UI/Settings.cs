@@ -61,5 +61,9 @@ namespace CubeHopper.UI
             _settingsPanel.transform.LeanScale(Vector3.zero, 0.2f).setIgnoreTimeScale(true).setEaseOutQuad().setOnComplete(()=> 
             _settingsPanel.SetActive(false));
         }
+        public void RateApp()
+        {
+            Application.OpenURL("market://details?id=" + Application.productName);
+        }
     }
 }

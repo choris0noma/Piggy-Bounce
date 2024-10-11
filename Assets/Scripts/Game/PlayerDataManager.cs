@@ -24,6 +24,7 @@ namespace CubeHopper.Game
         private PlayerStats stats;
         private bool isEncrypted = true;
         public int Money => stats.Money;
+        public int Score => stats.Score;
 
         private Vector3 _addMoneyStartPos;
 
@@ -31,11 +32,10 @@ namespace CubeHopper.Game
         {
             _addMoneyText.gameObject.SetActive(true);
             _addMoneyText.text = "+" + amount.ToString();
-
+            stats.Money += amount;
             _addMoneyText.transform.LeanMoveLocalY(_moneyText.transform.localPosition.y, 1f).setIgnoreTimeScale(true).setEaseOutQuart().setOnComplete(() => {
                 _addMoneyText.gameObject.SetActive(false);
                 _addMoneyText.transform.localPosition = _addMoneyStartPos;
-                stats.Money += amount;
                 _moneyText.text = stats.Money.ToString();
             });
             if (!_dataService.SaveData(FILE_PATH, stats, isEncrypted))
@@ -46,7 +46,6 @@ namespace CubeHopper.Game
 
         public void ExecutePurchase(int cost)
         {
-            print(stats.Money);
             stats.Money -= cost;
             _moneyText.text = stats.Money.ToString();
             if (!_dataService.SaveData(FILE_PATH, stats, isEncrypted))
