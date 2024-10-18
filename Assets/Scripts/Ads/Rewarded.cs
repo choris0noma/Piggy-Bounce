@@ -11,7 +11,7 @@ namespace CubeHopper
     {
 
         private string _adUnitId = "ca-app-pub-3940256099942544/5224354917";
-        private string _noRewardAd;
+        private string _noRewardAd = "ca-app-pub-3940256099942544/5224354917";
 
         [SerializeField] private CanvasGroup _prompt;
         private RewardedAd _rewardedAd;
