@@ -8,6 +8,7 @@ using CubeHopper.Audio;
 using CubeHopper.Platform;
 using System.Runtime.CompilerServices;
 using UnityEngine.Rendering;
+using System.Security.Cryptography;
 
 namespace CubeHopper.Game
 {
@@ -20,7 +21,7 @@ namespace CubeHopper.Game
         private const int BORDER_LAYER = 13;
         
         private const float BOUNCE_REDUCTION = 0.75f;
-        private float HALF_PLAYER_SIZE = 0.5f;
+        private Vector2 HALF_PLAYER_SIZE = new Vector2(0.5f,0.5f);
         private int REFLECTION_LAYER = (1 << OBSTACLE_LAYER) | (1 << BORDER_LAYER);
         [Header("Touch Drag settings")]
         [SerializeField][Range(1, 10)] private float _power = 5f;
@@ -61,17 +62,16 @@ namespace CubeHopper.Game
         private Vector2 _startPos;
 
         private int _steps;
-        private float _gravitationalVelocity;
         private bool isOnGround = true;
 
         public static Action<Vector2> OnLand;
         public static Action OnRelease;
         public static Action<int> OnScore;
-        public static Action OnCoinTrigger;
+        public static Action<int> OnCoinTrigger;
 
         private float _previous_height = 0;
         private float _diff = 0;
-
+        private bool canDrag = true;
         public static Action OnDeath;
         private void OnEnable()
         {
@@ -81,16 +81,16 @@ namespace CubeHopper.Game
         {
             CameraFollow.OnCameraStop -= AdjustStarPos;
         }
-        private void AdjustStarPos()
+        private void AdjustStarPos(bool isStopped)
         {
-            _diff = transform.position.y - _previous_height;
-            _startPos.y += _diff;
+            canDrag = isStopped;
+      
         }
         private void Awake()
         {
             Time.timeScale = 1;
             _rigidBody = GetComponent<Rigidbody2D>();
-            HALF_PLAYER_SIZE = transform.localScale.x / 2;
+            HALF_PLAYER_SIZE = GetComponent<BoxCollider2D>().size / 2;
             _steps = (int)Mathf.Round(_duration / _timeStep);
 
 
@@ -102,26 +102,30 @@ namespace CubeHopper.Game
                 _dots[i].SetActive(false);
             }
         }
-        
+        bool isDragging = false;
         private void Update()
         {
             
-            if (UItools.IsOnUI() || Settings.isPaused ) return;
+            if (UItools.IsOnUI() || Settings.isPaused) return;
 
-            if (!isOnGround && Input.GetMouseButtonDown(0))
+            if (!canDrag && Input.GetMouseButtonDown(0))
             {
                 _rigidBody.velocity = Vector2.zero;
                 _rigidBody.AddForce(new Vector2(0, -(_power) * 3), ForceMode2D.Impulse);
-                // a little more of fun into gameplay
             }
-            if (Input.GetMouseButtonDown(0))
-                DragStart();
-            else if (Input.GetMouseButton(0))
+
+            if (Input.GetMouseButtonDown(0) || (Input.GetMouseButton(0) && !isDragging))
+                 DragStart();
+            
+            if (!canDrag) return;
+
+            if (Input.GetMouseButton(0))
                 PlotTrajectory();
             else if (Input.GetMouseButtonUp(0))
                 DragRelease();
 
         }
+
 
         private bool AngleCheck(Vector2 launchDirection)
         {
@@ -131,10 +135,21 @@ namespace CubeHopper.Game
         }
 
 
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+            int layer = collision.gameObject.layer;
+            if (layer == BORDER_LAYER)
+            {
+                ContactPoint2D[] p = new ContactPoint2D[1];
+                collision.GetContacts(p);
+            }
+        }
+
         private void OnTriggerEnter2D(Collider2D collision)
         {
             int layer = collision.gameObject.layer;
 
+            
             if (layer == DEATH_LAYER) Die();
             if (layer == COIN_LAYER)
             {
@@ -142,7 +157,7 @@ namespace CubeHopper.Game
                 AudioManager.Instance.PlayAudio(_coinSound);
                 //Handheld.Vibrate();
                 Instantiate(_coinParticles , transform.position, Quaternion.identity);
-                OnCoinTrigger?.Invoke();
+                OnCoinTrigger?.Invoke(1);
             }
             if (layer == PLATFORM_LAYER)
             {
@@ -153,6 +168,8 @@ namespace CubeHopper.Game
                 isOnGround = true;
                 OnLand?.Invoke(transform.position);
                 _spriteRenderer.sprite = _idle;
+                _diff = transform.position.y - _previous_height;
+                _startPos.y += _diff;
                 OnScore?.Invoke(1);
             }
         }
@@ -182,6 +199,7 @@ namespace CubeHopper.Game
         private void DragStart()
         {
             _startPos = _cam.ScreenToWorldPoint(Input.mousePosition);
+            isDragging = true;
         }
      
         private void DragRelease()
@@ -194,20 +212,21 @@ namespace CubeHopper.Game
                 SetDotsActive(false);
                 return;
             }
-            Vector2 forceDirection = Vector3.ClampMagnitude(direction, _maxDrag)* _power;
+            Vector2 forceDirection = Vector3.ClampMagnitude(direction, _maxDrag) * _power;
             _spriteRenderer.sprite = _flying;
+            _rigidBody.velocity = Vector2.zero;
             _rigidBody.AddForce(forceDirection, ForceMode2D.Impulse);
             AudioManager.Instance.PlayAudio(_launchSound);
             OnRelease?.Invoke();
             isOnGround = false;
+            canDrag = false;
+            isDragging = false;
             SetDotsActive(false);
         }
-
-       
         private void PlotTrajectory()
         {
+            if (!isOnGround) return;
             Vector2 mousePos = _cam.ScreenToWorldPoint(Input.mousePosition);
-
             if (IsDragCancelled(mousePos) || !isOnGround)
             {
                 SetDotsActive(false);
@@ -215,8 +234,8 @@ namespace CubeHopper.Game
             }
 
             Vector2 direction = _startPos - mousePos;
-            Vector2 launchPos = transform.position;
-            Vector2 forceDirection = Vector2.ClampMagnitude(direction, _maxDrag) * _power;
+            Vector2 launchPos = transform.position- (Vector3.up * HALF_PLAYER_SIZE.y);
+            Vector2 force = Vector2.ClampMagnitude(direction, _maxDrag) * _power;
 
             float time = 0f;
             int cancelIndex = _steps-1;
@@ -225,24 +244,25 @@ namespace CubeHopper.Game
             {
                 time += _timeStep;
                 float scale = Mathf.Lerp(0.25f, 0.1f, (float)i / _steps);
-                Vector2 displacement = CalculateDisplacement(forceDirection,time);
+                Vector2 displacement = CalculateDisplacement(force,time);
                 Vector2 newPos = launchPos + displacement;
                  
-                RaycastHit2D hit = Physics2D.BoxCast(newPos, new Vector2(HALF_PLAYER_SIZE, HALF_PLAYER_SIZE), 0, displacement, HALF_PLAYER_SIZE, REFLECTION_LAYER); 
-                
+                RaycastHit2D hit = Physics2D.BoxCast(newPos, HALF_PLAYER_SIZE, 0, displacement.normalized, 0.5f, REFLECTION_LAYER);
                 if (hit)
                 {
                     if (hit.transform.gameObject.layer == BORDER_LAYER) 
-                    { 
-                        launchPos = (hit.point - Vector2.up * HALF_PLAYER_SIZE) + (hit.normal * HALF_PLAYER_SIZE);
+                    {
+                        Vector2 closestPoint = hit.collider.ClosestPoint(newPos);
 
-                        Vector2 reducedForce = forceDirection - displacement;
+                        launchPos = (closestPoint-Vector2.up) + (hit.normal * scale / 2);
+
+                        Vector2 reducedForce = force - displacement;
                         Vector2 normalComponent = Vector2.Dot(reducedForce, hit.normal) * hit.normal;
                         Vector2 tangentComponent = reducedForce - normalComponent;
-                        forceDirection = tangentComponent - normalComponent * BOUNCE_REDUCTION;
+                        force = tangentComponent - normalComponent * BOUNCE_REDUCTION;
 
                         time = _timeStep;
-                        displacement = CalculateDisplacement(forceDirection, time);
+                        displacement = CalculateDisplacement(force, time);
                         newPos = launchPos + displacement;
                     }
                     else
@@ -269,6 +289,7 @@ namespace CubeHopper.Game
                 _dots[i].SetActive(false);
             }
         }
+     
         private void SetDotsActive(bool isActive)
         {
             foreach (GameObject dot in _dots)

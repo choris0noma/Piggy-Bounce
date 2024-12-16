@@ -1,4 +1,6 @@
 using CubeHopper.Audio;
+using System;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -63,7 +65,7 @@ namespace CubeHopper.UI
         }
         public void RateApp()
         {
-            Application.OpenURL("market://details?id=" + Application.productName);
+            Application.OpenURL("https://play.google.com/store/apps/details?id=" + Application.identifier);
         }
     }
 }

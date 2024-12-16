@@ -7,7 +7,7 @@ namespace CubeHopper.CameraModule
     public class CameraFollow : MonoBehaviour
     {
         [SerializeField] private AnimationCurve _curve;
-        public static Action OnCameraStop;
+        public static Action<bool> OnCameraStop;
         private float OFFSET;
         private void OnEnable()
         {
@@ -24,7 +24,7 @@ namespace CubeHopper.CameraModule
         private void LerpToPlayer(Vector2 landPos)
         {
             transform.LeanMove(new Vector2(0, landPos.y + OFFSET), 1f).setEaseOutQuint().setOnComplete(
-                () => OnCameraStop?.Invoke()
+                    () => OnCameraStop?.Invoke(true)
                 );
         }
         

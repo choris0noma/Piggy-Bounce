@@ -15,6 +15,7 @@ namespace CubeHopper.Game
         [SerializeField] private TextMeshProUGUI _scoreText;
         [SerializeField] private TextMeshProUGUI _moneyText;
         [SerializeField] private TextMeshProUGUI _addMoneyText;
+        [SerializeField] private TextMeshProUGUI _addScoreText;
         public static Action OnDifficultyChange;
         private int _threshold = 10;
         private int _level = 0;
@@ -26,7 +27,7 @@ namespace CubeHopper.Game
         public int Money => stats.Money;
         public int Score => stats.Score;
 
-        private Vector3 _addMoneyStartPos;
+        private Vector3 _addMoneyStartPos, _addScoreStartPos;
 
         public void GiveReward(int amount)
         {
@@ -57,20 +58,21 @@ namespace CubeHopper.Game
         private void OnEnable()
         {
             Player.OnScore += AddScore;
-            Player.OnCoinTrigger += AddCoin;
+            Player.OnCoinTrigger += GiveReward;
             DailyReward.OnRewardClaimed += GiveReward;
             Rewarded.OnMoneyRewardGiven += GiveReward;
         }
         private void OnDisable()
         {
             Player.OnScore -= AddScore;
-            Player.OnCoinTrigger -= AddCoin;
+            Player.OnCoinTrigger -= GiveReward;
             DailyReward.OnRewardClaimed -= GiveReward;
             Rewarded.OnMoneyRewardGiven -= GiveReward;
         }
         private void Awake()
         {
             _addMoneyStartPos = _addMoneyText.transform.localPosition;
+            _addScoreStartPos = _addScoreText.transform.localPosition;
             LoadPlayerData();
             maxScore = stats.Score;
             _moneyText.text = stats.Money.ToString();
@@ -82,16 +84,18 @@ namespace CubeHopper.Game
             _scoreText.text = "0";
             stats.Score = 0;
         }
-        private void AddCoin()
-        {
-            stats.Money++;
-            _moneyText.text = stats.Money.ToString();
-        }
+ 
 
         private void AddScore(int value)
         {
-            stats.Score += value;
-            _scoreText.text = stats.Score.ToString();
+            _addScoreText.gameObject.SetActive(true);
+            _addScoreText.text = "+" + value.ToString();
+            stats.Score+= value;
+            _addScoreText.transform.LeanMoveLocalY(_scoreText.transform.localPosition.y, 1f).setIgnoreTimeScale(true).setEaseOutQuart().setOnComplete(() => {
+                _addScoreText.gameObject.SetActive(false);
+                _addScoreText.transform.localPosition = _addScoreStartPos;
+                _scoreText.text = stats.Score.ToString();
+            });
             if (stats.Score > maxScore)
             {
                 maxScore = stats.Score;

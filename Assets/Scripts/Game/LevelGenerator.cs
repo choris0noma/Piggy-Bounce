@@ -8,7 +8,8 @@ namespace CubeHopper.Game
     public class LevelGenerator : MonoBehaviour
     {
         private const float PLATFORM_HALFSIZE = 0.8f;
-        [SerializeField] private List<SimplePlatform> _platforms;   
+        [SerializeField] private List<SimplePlatform> _platforms;
+        
         [SerializeField] private GameObject _previousPlatform ,_currentPlatform, _nextPlatform;
         [Space]
         [Header("Player Reference")]
@@ -50,7 +51,6 @@ namespace CubeHopper.Game
             }
         }
         
-        //damn, it seems like i am lactose intolerant
 
         private void UpdateWeights()
         {
