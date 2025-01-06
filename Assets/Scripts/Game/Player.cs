@@ -149,8 +149,11 @@ namespace CubeHopper.Game
         {
             int layer = collision.gameObject.layer;
 
-            
-            if (layer == DEATH_LAYER) Die();
+
+            if (layer == DEATH_LAYER)
+            {
+                Die();
+            }
             if (layer == COIN_LAYER)
             {
                 Destroy(collision.gameObject);
@@ -164,7 +167,9 @@ namespace CubeHopper.Game
                 AudioManager.Instance.PlayAudio(_landingSound);
                 //Handheld.Vibrate();
                 _rigidBody.velocity = Vector2.zero;
-                collision.transform.parent.parent.GetComponent<SimplePlatform>().DeactivatePlatform();
+                var p = collision.transform.parent.parent.GetComponent<SimplePlatform>();
+                p.DeativateSpike();
+                p.SetPlatformState(false);
                 isOnGround = true;
                 OnLand?.Invoke(transform.position);
                 _spriteRenderer.sprite = _idle;
@@ -178,6 +183,8 @@ namespace CubeHopper.Game
         public void Resurrect()
         {
             isResurrected = true;
+            canDrag = true;
+            isDragging = false;
             gameObject.SetActive(true);
         }
         private void Die()

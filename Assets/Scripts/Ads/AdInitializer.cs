@@ -13,10 +13,10 @@ public class AdInitializer : MonoBehaviour
     public void Start()
     {
         Application.targetFrameRate = 60;
+        MobileAds.RaiseAdEventsOnUnityMainThread = true;
         MobileAds.Initialize((InitializationStatus initStatus) =>
         {
             OnAdsInitialized?.Invoke();
         });
-        MobileAds.RaiseAdEventsOnUnityMainThread = true;
     }
 }

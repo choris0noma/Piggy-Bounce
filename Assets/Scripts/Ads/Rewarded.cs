@@ -10,8 +10,8 @@ namespace CubeHopper
     public class Rewarded : MonoBehaviour
     {
 
-        private string _adUnitId = "ca-app-pub-3940256099942544/5224354917";
-        private string _noRewardAd = "ca-app-pub-3940256099942544/5224354917";
+        private string _adUnitId = "ca-app-pub-5695626826162521/6577100411";
+        private string _noRewardAd = "ca-app-pub-5695626826162521/3104759260";
 
         [SerializeField] private CanvasGroup _prompt;
         private RewardedAd _rewardedAd;

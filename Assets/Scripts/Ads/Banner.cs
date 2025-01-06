@@ -2,6 +2,7 @@ using GoogleMobileAds.Api;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.InteropServices.WindowsRuntime;
 using UnityEngine;
 
 namespace CubeHopper
@@ -9,7 +10,7 @@ namespace CubeHopper
     public class Banner : MonoBehaviour
     {
         #if UNITY_ANDROID
-                private string _adUnitId = "ca-app-pub-3940256099942544/6300978111";
+                private string _adUnitId = "ca-app-pub-5695626826162521/3947067640";
         #else
                   private string _adUnitId = "unused";
         #endif
@@ -21,7 +22,7 @@ namespace CubeHopper
         BannerView _bannerView;
       
 
-
+        
         public void RequestBanner()
         {
             // Clean up banner ad before creating a new one.
@@ -33,7 +34,7 @@ namespace CubeHopper
             AdSize adaptiveSize =
                     AdSize.GetCurrentOrientationAnchoredAdaptiveBannerAdSizeWithWidth(AdSize.FullWidth);
 
-            _bannerView = new BannerView(_adUnitId, adaptiveSize, AdPosition.Bottom);
+            _bannerView = new BannerView(_adUnitId, adaptiveSize, AdPosition.Top);
             AdRequest adRequest = new AdRequest();
 
             _bannerView.LoadAd(adRequest);

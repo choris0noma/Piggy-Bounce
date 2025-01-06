@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using CubeHopper.CameraModule;
 using CubeHopper.Platform;
+using UnityEngine.Pool;
+using UnityEditor;
 
 namespace CubeHopper.Game
 {
@@ -9,19 +11,21 @@ namespace CubeHopper.Game
     {
         private const float PLATFORM_HALFSIZE = 0.8f;
         [SerializeField] private List<SimplePlatform> _platforms;
-        
-        [SerializeField] private GameObject _previousPlatform ,_currentPlatform, _nextPlatform;
+        [SerializeField] private SimplePlatform _previousPlatform, _currentPlatform, _nextPlatform;
         [Space]
         [Header("Player Reference")]
         [SerializeField] private Player _player;
         private List<int> _prefixSum = new List<int>();
         private int _sumOfWeights = 0;
         private int _length = 0;
+        private int _currentIndex = 0;
+        private int _previousIndex = 0;
+        private Dictionary<SimplePlatform, ObjectPool<SimplePlatform>> _pools;
 
         private float placableX;
         private void OnEnable()
         {
-            Player.OnLand += InstantiatePlatform;
+            Player.OnLand += CreateNextPlatform;
             Player.OnRelease += DestroyPlatform;
             PlayerDataManager.OnDifficultyChange += UpdateWeights;
             Rewarded.OnRewardGiven += GiveSecondAttempt;
@@ -29,7 +33,7 @@ namespace CubeHopper.Game
 
         private void OnDisable()
         {
-            Player.OnLand -= InstantiatePlatform;
+            Player.OnLand -= CreateNextPlatform;
             Player.OnRelease -= DestroyPlatform;
             PlayerDataManager.OnDifficultyChange -= UpdateWeights;
             Rewarded.OnRewardGiven -= GiveSecondAttempt;
@@ -40,58 +44,97 @@ namespace CubeHopper.Game
             _player = FindObjectOfType<Player>();
             _length = _platforms.Count;
             placableX = CameraScaler.X_SIZE / 2 - PLATFORM_HALFSIZE;
-            for (int i = 0; i < _length; i++) 
+            for (int i = 0; i < _length; i++)
             {
                 _sumOfWeights += _platforms[i].Weight;
                 _prefixSum.Add(0);
-                for (int j = 0; j<= i; j++) 
+                for (int j = 0; j <= i; j++)
                 {
                     _prefixSum[i] += _platforms[j].Weight;
                 }
             }
+            _pools = new Dictionary<SimplePlatform, ObjectPool<SimplePlatform>>();
+            foreach (var platform in _platforms)
+            {
+                _pools[platform] = new ObjectPool<SimplePlatform>(
+                    () => Instantiate(platform),
+                    p => ActionOnGet(p),
+                    p => ActionOnRelease(p),
+                    p => Destroy(p.gameObject),
+                    false, 3, 3
+                );
+            }
         }
-        
+        private void Start()
+        {
+           /* var startP = _pools[_platforms[0]].Get();
+            startP.transform.position = new Vector3(0, -CameraScaler.X_SIZE / 3,0);
+            _currentPlatform = startP;*/
+            /*var nextP = _pools[_platforms[0]].Get();
+            _nextPlatform = nextP;*/
+        }
 
+        private void ActionOnGet(SimplePlatform p)
+        {
+            p.gameObject.SetActive(true);
+            p.SetPlatformState(true);
+        }
+        private void ActionOnRelease(SimplePlatform p)
+        {
+            p.gameObject.SetActive(false);
+            p.SetPlatformState(false);
+        }
         private void UpdateWeights()
         {
-            for (int i = 0; i< _length;i++)
+            for (int i = 0; i < _length; i++)
             {
                 int change = _platforms[i].Rate;
                 _sumOfWeights += change;
-                for (int j = i; j< _length; j++)
+                for (int j = i; j < _length; j++)
                 {
                     _prefixSum[j] += change;
                 }
             }
         }
-      
-
-        private void InstantiatePlatform(Vector2 playerPos)
+        private void CreateNextPlatform(Vector2 playerPos)
         {
-            SimplePlatform p = _platforms[GetNextIndex()];
-            Vector2 spawnPos = GetSpawnPosition(playerPos, p);
-
-            _nextPlatform = Instantiate(_platforms[GetNextIndex()].gameObject, spawnPos, Quaternion.identity);
+            _previousIndex = _currentIndex;
+            _currentIndex = GetNextIndex();
+            var p = _platforms[_currentIndex];
+            _nextPlatform = _pools[p].Get();
+            _nextPlatform.transform.position = GetSpawnPosition(playerPos, p);
         }
-
         private void DestroyPlatform()
         {
-            if (_previousPlatform != null) Destroy(_previousPlatform);
+            if (_previousPlatform != null)
+            {
+                _pools[_platforms[_previousIndex]].Release(_previousPlatform);
+            }
             _previousPlatform = _currentPlatform;
-            _currentPlatform.SetActive(false);
+
+            if (_currentPlatform != null)
+            {
+                _currentPlatform.SetPlatformState(false);
+                _currentPlatform.gameObject.SetActive(false);
+                //_pools[_platforms[_currentIndex]].Release(_currentPlatform);
+            }
+
             _currentPlatform = _nextPlatform;
+
+            _nextPlatform = null;
+
         }
-        
+
         public Vector2 GetSpawnPosition(Vector2 playerPosition, SimplePlatform p)
         {
-            float randomY = Random.Range(p.YOffset, p.YOffset+ p.YMaxOffset);
+            float randomY = Random.Range(p.YOffset, p.YOffset + p.YMaxOffset);
             float randomX;
 
             if (playerPosition.x - PLATFORM_HALFSIZE < -placableX)
-                randomX = Random.Range(playerPosition.x + PLATFORM_HALFSIZE*2, placableX);
-            else if(playerPosition.x + PLATFORM_HALFSIZE > placableX)
-                randomX = Random.Range(-placableX, playerPosition.x - PLATFORM_HALFSIZE*2);
-            else 
+                randomX = Random.Range(playerPosition.x + PLATFORM_HALFSIZE * 2, placableX);
+            else if (playerPosition.x + PLATFORM_HALFSIZE > placableX)
+                randomX = Random.Range(-placableX, playerPosition.x - PLATFORM_HALFSIZE * 2);
+            else
                 randomX = Random.Range(-placableX, placableX);
 
             return new Vector2(randomX, playerPosition.y + randomY);
@@ -99,21 +142,23 @@ namespace CubeHopper.Game
 
         private void GiveSecondAttempt()
         {
-            _previousPlatform.SetActive(true);
+         
+            _nextPlatform = _currentPlatform;
+            _currentPlatform = _previousPlatform;
+            _previousPlatform.gameObject.SetActive(true);
             _player.transform.position = new Vector3
             (
                 _previousPlatform.transform.position.x,
                 _previousPlatform.transform.position.y + 1,
                 _previousPlatform.transform.position.z
             );
-            _nextPlatform = _currentPlatform;
-            _currentPlatform = _previousPlatform;
+            
             _player.Resurrect();
         }
         private int GetNextIndex()
         {
             int randomPick = Random.Range(0, _sumOfWeights);
-            for (int i = 0; i< _prefixSum.Count; i++)
+            for (int i = 0; i < _prefixSum.Count; i++)
             {
                 if (randomPick < _prefixSum[i]) return i;
             }

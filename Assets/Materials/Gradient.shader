@@ -3,6 +3,7 @@ Shader "Custom Shaders/Gradient"
     Properties
     {
         _MainTex ("Texture", 2D) = "white" {}
+        _Noise ("Texture", 2D) = "white" {}
         _UVScale("UV Scale" ,float) = 1
         _HorizontalSpeed("Horizontal Speed", float) = 1
         _TopColor ("Top Color", color) = (1,1,1,1) 

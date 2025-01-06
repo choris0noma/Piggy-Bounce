@@ -31,8 +31,9 @@ namespace CubeHopper
         private void Open()
         {
             _screen.SetActive(true);
-           _screen.transform.LeanScale(Vector3.one, 0.3f).setEaseOutQuad().setDelay(1.2f).setOnComplete(() =>
+           _screen.transform.LeanScale(Vector3.one, 0.3f).setEaseOutQuad().setDelay(0.5f).setOnComplete(() =>
            {
+               _adButton.interactable = true;
                _adButton.transform.LeanScale(new Vector3(1.2f,1.2f,1.2f), 0.5f).setLoopPingPong();
                _coroutine = StartCoroutine(CountDown());
            });

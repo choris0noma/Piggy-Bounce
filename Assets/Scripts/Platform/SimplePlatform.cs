@@ -9,12 +9,22 @@ namespace CubeHopper.Platform
         [SerializeField] protected WeightData _weightData;
         [SerializeField] protected float _yOffset, _yMaxOffset;
         [SerializeField] protected Collider2D _collider;
-
-        public void DeactivatePlatform()
+        [SerializeField] protected GameObject _spike;
+        public void SetPlatformState(bool isActive)
         {
-            this.enabled = false;
-            _collider.enabled = false;
+            this.enabled = isActive;
+            _collider.enabled = isActive;
         }
+       
+        public void DeativateSpike()
+        {
+            if (_spike != null) 
+            { 
+                _spike.SetActive(false);
+            }
+        }
+
+        //idk what i'am doing
 
 
         public int Weight
@@ -35,10 +45,7 @@ namespace CubeHopper.Platform
             get { return _yMaxOffset;}
         }
         
-        /*
-        if 'tis unclear, thou shalt go about
-        then thou may see and puzzle it out       //just don't give up! :)
-        */
+
         
     }
 }
